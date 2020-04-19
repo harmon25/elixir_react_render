@@ -39,11 +39,9 @@ function hydrateClient(componentMapper) {
       serverRenderedComponent.dataset.component
     );
     const props = JSON.parse(serverRenderedComponent.dataset.props);
-    const router = React.createElement(BrowserRouter, {
-      children: React.createElement(component, props),
-    });
+    const element = React.createElement(component, props);
 
-    ReactDOM.hydrate(router, serverRenderedComponent);
+    ReactDOM.hydrate(element, serverRenderedComponent);
   }
 }
 

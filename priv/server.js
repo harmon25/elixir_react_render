@@ -1,6 +1,7 @@
 const ReactServer = require("react-dom/server");
-const { StaticRouter, matchPath } = require("react-router-dom");
+const { StaticRouter } = require("react-router-dom");
 const React = require("react");
+
 // this is not being used?
 // const readline = require("readline");
 
@@ -34,16 +35,14 @@ function renderWithRouter(componentPath, location = "/", props = {}) {
 
     const markup = ReactServer.renderToString(router);
 
-    const response = {
+    return {
       error: null,
       markup: markup,
       component: element.name,
     };
-
-    return response;
   } catch (err) {
     // pass args to error response
-    const response = {
+    return {
       args: { componentPath, location, props },
       path: componentPath,
       error: {
@@ -54,8 +53,6 @@ function renderWithRouter(componentPath, location = "/", props = {}) {
       markup: null,
       component: null,
     };
-
-    return response;
   }
 }
 
@@ -67,15 +64,13 @@ function render(componentPath, props) {
 
     const markup = ReactServer.renderToString(createdElement);
 
-    const response = {
+    return {
       error: null,
       markup: markup,
       component: element.name,
     };
-
-    return response;
   } catch (err) {
-    const response = {
+    return {
       args: { componentPath, props },
       path: componentPath,
       error: {
@@ -86,8 +81,6 @@ function render(componentPath, props) {
       markup: null,
       component: null,
     };
-
-    return response;
   }
 }
 

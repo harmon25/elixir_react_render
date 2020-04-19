@@ -73,15 +73,19 @@ defmodule ReactRender do
       {:ok, %{"markup" => markup, "component" => component}} ->
         encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
 
-        html = "<div data-rendered data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <> markup <> "</div>"
-        {:safe, html }
+        html =
+          "<div data-rendered data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <>
+            markup <> "</div>"
+
+        {:safe, html}
     end
   end
 
   @spec render_root(binary(), map(), keyword()) :: {:safe, binary()}
-  def render_root(component_path, props, opts \\ [] ) do
+  def render_root(component_path, props, opts \\ []) do
     location = Keyword.get(opts, :location, "/")
     root_id = Keyword.get(opts, :root_id, "react-root")
+    initial_state = Keyword.get(opts, :initial_state, %{})
 
     case do_get_root_html(component_path, location, props) do
       {:error, %{message: message, stack: stack}} ->
@@ -89,18 +93,22 @@ defmodule ReactRender do
 
       {:ok, %{"markup" => markup, "component" => component}} ->
         encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
+        encoded_state = Jason.encode!(initial_state) |> String.replace("\"", "&quot;")
 
-        html = "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <> markup <> "</div>"
-
+        html =
+          "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\" data-initialstate=\"#{
+            encoded_state
+          }\">" <> markup <> "</div>"
 
         {:safe, html}
     end
   end
 
-
   defp do_get_root_html(component_path, req_url, props) do
     # do not think this needs to be in a task, is likely already being called in an isolated request process...
-    NodeJS.call({:render_server, "renderWithRouter"}, [component_path, req_url, props], binary: true)
+    NodeJS.call({:render_server, "renderWithRouter"}, [component_path, req_url, props],
+      binary: true
+    )
     |> case do
       {:ok, %{"error" => error}} when not is_nil(error) ->
         normalized_error = %{
@@ -109,7 +117,9 @@ defmodule ReactRender do
         }
 
         {:error, normalized_error}
-       ok -> ok
+
+      ok ->
+        ok
     end
   end
 
