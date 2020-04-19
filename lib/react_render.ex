@@ -72,25 +72,19 @@ defmodule ReactRender do
 
       {:ok, %{"markup" => markup, "component" => component}} ->
         encoded_props = Jason.encode!(props)
+       s = "<div data-rendered data-component=\"#{component}\" data-props=\"#{encoded_props}\">"
 
 
-         # |> String.replace("\"", "&quot;")
-
-        html =
-          """
-          <div data-rendered data-component="#{component}" data-props="#{encoded_props}">
-          #{markup}
-          </div>
-          """
-          |> String.replace("\n", "")
-
-        {:safe, html}
+        {:safe, s <> markup <> "</div>"}
     end
   end
 
-  @spec render_root(binary(), binary(), map()) :: {:safe, binary()}
-  def render_root(component_path, root_id, props \\ %{}) do
-    case do_get_html(component_path, props) do
+  @spec render_root(binary(), map(), keyword()) :: {:safe, binary()}
+  def render_root(component_path, props, opts \\ [] ) do
+    location = Keyword.get(opts, :location, "/")
+    root_id = Keyword.get(opts, :root_id, "react-root")
+
+    case do_get_root_html(component_path, location, props) do
       {:error, %{message: message, stack: stack}} ->
         raise ReactRender.RenderError, message: message, stack: stack
 
@@ -104,6 +98,21 @@ defmodule ReactRender do
     end
   end
 
+
+  defp do_get_root_html(component_path, req_url, props) do
+    # do not think this needs to be in a task, is likely already being called in an isolated request process...
+    NodeJS.call({:render_server, :renderWithRouter}, [component_path, req_url, props], binary: true)
+    |> case do
+      {:ok, %{"error" => error}} when not is_nil(error) ->
+        normalized_error = %{
+          message: error["message"],
+          stack: error["stack"]
+        }
+
+        {:error, normalized_error}
+       ok -> ok
+    end
+  end
 
   defp do_get_html(component_path, props) do
     task =

@@ -20,7 +20,7 @@ function requireComponent(componentPath) {
   return require(componentPath);
 }
 
-function renderWithRouter(componentPath, location = "/") {
+function renderWithRouter(componentPath, location = "/", props = {}) {
   try {
     const component = requireComponent(componentPath);
     const element = component.default ? component.default : component;
