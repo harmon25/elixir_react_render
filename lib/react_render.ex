@@ -71,14 +71,14 @@ defmodule ReactRender do
         raise ReactRender.RenderError, message: message, stack: stack
 
       {:ok, %{"markup" => markup, "component" => component}} ->
-        props =
-          props
-          |> Jason.encode!()
-          |> String.replace("\"", "&quot;")
+        encoded_props = Jason.encode!(props)
+
+
+         # |> String.replace("\"", "&quot;")
 
         html =
           """
-          <div data-rendered data-component="#{component}" data-props="#{props}">
+          <div data-rendered data-component="#{component}" data-props="#{encoded_props}">
           #{markup}
           </div>
           """
@@ -87,6 +87,23 @@ defmodule ReactRender do
         {:safe, html}
     end
   end
+
+  @spec render_root(binary(), binary(), map()) :: {:safe, binary()}
+  def render_root(component_path, root_id, props \\ %{}) do
+    case do_get_html(component_path, props) do
+      {:error, %{message: message, stack: stack}} ->
+        raise ReactRender.RenderError, message: message, stack: stack
+
+      {:ok, %{"markup" => markup, "component" => component}} ->
+        encoded_props = Jason.encode!(props)
+
+        html = "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <> markup <> "</div>"
+
+
+        {:safe, html}
+    end
+  end
+
 
   defp do_get_html(component_path, props) do
     task =

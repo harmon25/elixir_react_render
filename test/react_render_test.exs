@@ -10,8 +10,8 @@ defmodule ReactRender.Test do
   describe "get_html" do
     test "returns html" do
       {:ok, html} = ReactRender.get_html("ClassComponent.js", %{name: "test"})
-      assert html =~ "<div data-reactroot=\"\">👋"
-      assert html =~ "test</div>"
+      assert html =~ "<div>👋"
+      assert html =~ " <!-- -->test</div>"
     end
 
     test "returns error when no component found" do
@@ -26,8 +26,18 @@ defmodule ReactRender.Test do
       assert html =~ "data-rendered"
       assert html =~ "data-component"
       assert html =~ "TestComponent"
-      assert html =~ "<div data-reactroot=\"\">👋"
-      assert html =~ "test</div>"
+      assert html =~ "<div>👋"
+      assert html =~ " <!-- -->test</div>"
+    end
+
+    test "returns html with id" do
+      {:safe, html} = ReactRender.render_root("PureFunction.js", "root-id", %{name: "test"})
+      IO.inspect(html)
+      assert html =~ "id=\"root-id\""
+      assert html =~ "data-component"
+      assert html =~ "TestComponent"
+      assert html =~ "<div>👋"
+      assert html =~ " <!-- -->test</div>"
     end
 
     test "raises RenderError when no component found" do
