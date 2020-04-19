@@ -1,6 +1,7 @@
 const ReactServer = require("react-dom/server");
 const { StaticRouter, matchPath } = require("react-router-dom");
 const React = require("react");
+// this is not being used?
 // const readline = require("readline");
 
 function deleteCache(componentPath) {
@@ -41,7 +42,9 @@ function renderWithRouter(componentPath, location = "/", props = {}) {
 
     return response;
   } catch (err) {
+    // pass args to error response
     const response = {
+      args: { componentPath, location, props },
       path: componentPath,
       error: {
         type: err.constructor.name,
@@ -73,6 +76,7 @@ function render(componentPath, props) {
     return response;
   } catch (err) {
     const response = {
+      args: { componentPath, props },
       path: componentPath,
       error: {
         type: err.constructor.name,
