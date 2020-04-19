@@ -40,7 +40,7 @@ function renderWithRouter(componentPath, location = "/", props = {}) {
     };
 
     return response;
-  } catch (e) {
+  } catch (err) {
     const response = {
       path: componentPath,
       error: {

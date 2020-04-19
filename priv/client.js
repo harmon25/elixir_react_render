@@ -7,7 +7,7 @@ const { BrowserRouter } = require("react-router-dom");
  * @param {React.Component} App
  * @param {String} rootElementId
  */
-function hydrateRouter(App, rootElementId) {
+function hydrateRouter(App, rootElementId = "react-root") {
   // find root element
   const reactRoot = document.getElementById(rootElementId);
   // grab props rendered as data attribute off root element
