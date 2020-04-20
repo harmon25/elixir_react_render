@@ -83,11 +83,10 @@ defmodule ReactRender do
 
   @spec render_root(binary(), map(), keyword()) :: {:safe, binary()}
   def render_root(component_path, props, opts \\ []) do
-    location = Keyword.get(opts, :location, "/")
     root_id = Keyword.get(opts, :root_id, "react-root")
     initial_state = Keyword.get(opts, :initial_state, %{})
 
-    case do_get_root_html(component_path, location, props) do
+    case do_get_root_html(component_path, props) do
       {:error, %{message: message, stack: stack}} ->
         raise ReactRender.RenderError, message: message, stack: stack
 
@@ -104,9 +103,11 @@ defmodule ReactRender do
     end
   end
 
-  defp do_get_root_html(component_path, req_url, props) do
+  defp do_get_root_html(component_path, props) do
     # do not think this needs to be in a task, is likely already being called in an isolated request process...
-    NodeJS.call({:render_server, "renderWithRouter"}, [component_path, req_url, props],
+    NodeJS.call(
+      {:render_server, :render},
+      [component_path, props],
       binary: true
     )
     |> case do

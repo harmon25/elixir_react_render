@@ -1,5 +1,4 @@
 const ReactServer = require("react-dom/server");
-const { StaticRouter } = require("react-router-dom");
 const React = require("react");
 
 // this is not being used?
@@ -22,52 +21,18 @@ function requireComponent(componentPath) {
   return require(componentPath);
 }
 
-function renderWithRouter(componentPath, location = "/", props = {}) {
-  try {
-    const component = requireComponent(componentPath);
-    const element = component.default ? component.default : component;
-
-    const router = React.createElement(StaticRouter, {
-      location,
-      context: {},
-      children: React.createElement(element, props),
-    });
-
-    const markup = ReactServer.renderToString(router);
-
-    return {
-      error: null,
-      markup: markup,
-      component: element.name,
-    };
-  } catch (err) {
-    // pass args to error response
-    return {
-      args: { componentPath, location, props },
-      path: componentPath,
-      error: {
-        type: err.constructor.name,
-        message: err.message,
-        stack: err.stack,
-      },
-      markup: null,
-      component: null,
-    };
-  }
-}
-
 function render(componentPath, props) {
   try {
     const component = requireComponent(componentPath);
-    const element = component.default ? component.default : component;
-    const createdElement = React.createElement(element, props);
+    const Component = component.default ? component.default : component;
+    // const createdElement = React.createElement(element, props);
 
-    const markup = ReactServer.renderToString(createdElement);
+    const markup = ReactServer.renderToString(<Component {...props} />);
 
     return {
       error: null,
       markup: markup,
-      component: element.name,
+      component: Component.name,
     };
   } catch (err) {
     return {
@@ -86,5 +51,4 @@ function render(componentPath, props) {
 
 module.exports = {
   render,
-  renderWithRouter,
 };
