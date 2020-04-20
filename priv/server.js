@@ -24,10 +24,10 @@ function requireComponent(componentPath) {
 function render(componentPath, props) {
   try {
     const component = requireComponent(componentPath);
-    const Component = component.default ? component.default : component;
-    // const createdElement = React.createElement(element, props);
+    const element = component.default ? component.default : component;
+    const createdElement = React.createElement(element, props);
 
-    const markup = ReactServer.renderToString(<Component {...props} />);
+    const markup = ReactServer.renderToString(createdElement);
 
     return {
       error: null,
