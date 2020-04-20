@@ -30,7 +30,7 @@ function render(componentPath, props) {
     return {
       error: null,
       markup: ReactServer.renderToString(createdElement),
-      component: createdElement.name,
+      component: element.name,
     };
   } catch (err) {
     return {
