@@ -11,8 +11,9 @@ function hydrateRoot(App, rootElementId = "react-root") {
   const reactRoot = document.getElementById(rootElementId);
   // grab props rendered as data attribute off root element
   const props = JSON.parse(reactRoot.dataset.props);
+  const element = React.createElement(App, props);
   // trigger hydration
-  ReactDOM.hydrate(<App {...props} />, reactRoot);
+  ReactDOM.hydrate(element, reactRoot);
 }
 
 /**
