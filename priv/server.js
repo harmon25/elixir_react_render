@@ -27,12 +27,10 @@ function render(componentPath, props) {
     const element = component.default ? component.default : component;
     const createdElement = React.createElement(element, props);
 
-    const markup = ReactServer.renderToString(createdElement);
-
     return {
       error: null,
-      markup: markup,
-      component: Component.name,
+      markup: ReactServer.renderToString(createdElement),
+      component: createdElement.name,
     };
   } catch (err) {
     return {
