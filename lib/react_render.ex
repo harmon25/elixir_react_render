@@ -97,7 +97,8 @@ defmodule ReactRender do
 
   This version should be paired with the `hydrateRoot` js function in the client that only considers hydrating the single react tree on the page.
   """
-  @spec render_root(component_path(), props(), root_opts()) :: {:safe, rendered_component()}
+  @spec render_root(component_path(), props(), root_opts()) ::
+          {{:safe, rendered_component()}, map()}
   def render_root(component_path, props, opts \\ []) do
     root_id = Keyword.get(opts, :root_id, "react-root")
 
@@ -105,14 +106,14 @@ defmodule ReactRender do
       {:error, %{message: message, stack: stack}} ->
         raise ReactRender.RenderError, message: message, stack: stack
 
-      {:ok, %{"markup" => markup, "component" => component}} ->
+      {:ok, %{"markup" => markup, "component" => component, "tags" => tags}} ->
         encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
 
         html =
           "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <>
             markup <> "</div>"
 
-        {:safe, html}
+        {{:safe, html}, tags}
     end
   end
 
