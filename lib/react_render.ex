@@ -4,6 +4,11 @@ defmodule ReactRender do
   @timeout 10_000
   @default_pool_size 4
 
+  @type rendered_component :: binary()
+  @type component_path :: binary()
+  @type props :: map()
+  @type root_opts :: Keyword.t()
+
   @moduledoc """
   React Renderer
   """
@@ -41,7 +46,7 @@ defmodule ReactRender do
   `props` is a map of props given to the component. Must be able to turn into
   json
   """
-  @spec get_html(binary(), map()) :: {:ok, binary()} | {:error, map()}
+  @spec get_html(component_path(), props()) :: {:ok, rendered_component()} | {:error, map()}
   def get_html(component_path, props \\ %{}) do
     case do_get_html(component_path, props) do
       {:error, _} = error ->
@@ -61,10 +66,9 @@ defmodule ReactRender do
   `component_path` is the path to your react component module relative
   to the render service.
 
-  `props` is a map of props given to the component. Must be able to turn into
-  json
+  `props` is a map of props given to the component. Must be able to turn into json
   """
-  @spec render(binary(), map()) :: {:safe, binary()}
+  @spec render(component_path(), props()) :: {:safe, rendered_component()}
   def render(component_path, props \\ %{}) do
     case do_get_html(component_path, props) do
       {:error, %{message: message, stack: stack}} ->
@@ -81,10 +85,21 @@ defmodule ReactRender do
     end
   end
 
-  @spec render_root(binary(), map(), keyword()) :: {:safe, binary()}
+  @doc """
+  Given the `component_path` and `props`, returns html.
+
+  `component_path` is the path to your react component module relative
+  to the render service.
+
+  `props` is a map of props given to the component. Must be able to turn into json
+
+  This differs slightly from `render/2` in that its' container element is intended to house a full page react application.
+
+  This version should be paired with the `hydrateRoot` js function in the client that only considers hydrating the single react tree on the page.
+  """
+  @spec render_root(component_path(), props(), root_opts()) :: {:safe, rendered_component()}
   def render_root(component_path, props, opts \\ []) do
     root_id = Keyword.get(opts, :root_id, "react-root")
-    initial_state = Keyword.get(opts, :initial_state, %{})
 
     case do_get_root_html(component_path, props) do
       {:error, %{message: message, stack: stack}} ->
@@ -92,12 +107,10 @@ defmodule ReactRender do
 
       {:ok, %{"markup" => markup, "component" => component}} ->
         encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
-        encoded_state = Jason.encode!(initial_state) |> String.replace("\"", "&quot;")
 
         html =
-          "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\" data-initialstate=\"#{
-            encoded_state
-          }\">" <> markup <> "</div>"
+          "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <>
+            markup <> "</div>"
 
         {:safe, html}
     end
