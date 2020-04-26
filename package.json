@@ -7,9 +7,8 @@
     "README.md",
     "LICENSE",
     "package.json",
-    "./priv/server.js",
-    "./priv/client.js",
-    ".babelrc"
+    "priv/server.js",
+    "priv/client.js"
   ],
   "devDependencies": {
     "@babel/core": "^7.3.3",
