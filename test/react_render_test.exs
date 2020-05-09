@@ -3,7 +3,7 @@ defmodule ReactRender.Test do
   doctest ReactRender
 
   setup_all do
-    apply(ReactRender, :start_link, [[render_service_path: "#{File.cwd!}/test/fixtures"]])
+    apply(ReactRender, :start_link, [[render_service_path: "#{File.cwd!()}/test/fixtures"]])
     :ok
   end
 
@@ -23,7 +23,7 @@ defmodule ReactRender.Test do
   describe "render" do
     test "returns html" do
       {:safe, html} = ReactRender.render("PureFunction.js", %{name: "test"})
-     # IO.inspect(html)
+      # IO.inspect(html)
       assert html =~ "data-rendered"
 
       assert html =~ "👋"
@@ -31,8 +31,10 @@ defmodule ReactRender.Test do
     end
 
     test "returns html with id" do
-      {:safe, html} = ReactRender.render_root("PureFunction.js", %{name: "test"}, [root_id: "root-id"])
-      #IO.inspect(html)
+      {{:safe, html}, %{}} =
+        ReactRender.render_root("PureFunction.js", %{name: "test"}, root_id: "root-id")
+
+      # IO.inspect(html)
       assert html =~ "id=\"root-id\""
       assert html =~ "data-component=\"TestComponent\""
       assert html =~ "👋"

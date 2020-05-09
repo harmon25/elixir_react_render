@@ -7,6 +7,7 @@ defmodule ReactRender do
   @type rendered_component :: binary()
   @type component_path :: binary()
   @type props :: map()
+  @type meta :: map()
   @type root_opts :: Keyword.t()
 
   @moduledoc """
@@ -94,10 +95,17 @@ defmodule ReactRender do
   `props` is a map of props given to the component. Must be able to turn into json
 
   This differs slightly from `render/2` in that its' container element is intended to house a full page react application.
+  There is also consideration of data being passed back to elixir that is not just the rendered content, but other data (meta).
+  This is to handle things like split chunks, and styled-component tags that also need to be injected into the page.
+  This lets us choose what we want to do with them, and inject accordingly in eex, just like the main content.
+
+  In order to do this the render_server file needs to override the render method with a custom render method that passes back the meta key.
+  See README for an example.
 
   This version should be paired with the `hydrateRoot` js function in the client that only considers hydrating the single react tree on the page.
   """
-  @spec render_root(component_path(), props(), root_opts()) :: {:safe, rendered_component()}
+  @spec render_root(component_path(), props(), root_opts()) ::
+          {{:safe, rendered_component()}, meta()}
   def render_root(component_path, props, opts \\ []) do
     root_id = Keyword.get(opts, :root_id, "react-root")
 
@@ -105,15 +113,23 @@ defmodule ReactRender do
       {:error, %{message: message, stack: stack}} ->
         raise ReactRender.RenderError, message: message, stack: stack
 
+      # handle case when meta is passed back from node renderer
+      {:ok, %{"markup" => markup, "component" => component, "meta" => meta}} ->
+        {gen_html(root_id, markup, component, props), meta}
+
       {:ok, %{"markup" => markup, "component" => component}} ->
-        encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
-
-        html =
-          "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <>
-            markup <> "</div>"
-
-        {:safe, html}
+        {gen_html(root_id, markup, component, props), %{}}
     end
+  end
+
+  defp gen_html(root_id, markup, component, props) do
+    encoded_props = Jason.encode!(props) |> String.replace("\"", "&quot;")
+
+    html =
+      "<div id=\"#{root_id}\" data-component=\"#{component}\" data-props=\"#{encoded_props}\">" <>
+        markup <> "</div>"
+
+    {:safe, html}
   end
 
   defp do_get_root_html(component_path, props) do
